@@ -1,6 +1,8 @@
-﻿namespace ApplicationTracker.Entities
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace ApplicationTracker.Entities
 {
-    public class CustomUser
+    public class CustomUser: IdentityUser
     {
     }
 }
