@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ApplicationTracker.Repos;
+using Microsoft.Extensions.Configuration;
+using System;
 
 var FrontEndPolicy = "frontendpolicy";
 
@@ -25,26 +28,27 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 
 // Add services to the container.
-var env = builder.Environment;
+var env = builder.Environment.EnvironmentName;
 
-builder.Services.AddDbContext<ApplicationContext>(options =>
+if (env == "Development")
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        options.UseSqlite($"Data Source=app.db");  
-    }
-    else
-    {
-        // production database
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        options.UseSqlServer(connectionString);
-    }
-});
+    builder.Services.AddDbContext<ApplicationContext>(options =>
+        options.UseSqlite($"Data Source=app.db"));
+}
+else
+{
+    var prodConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Services.AddDbContext<ApplicationContext>(options =>
+        options.UseSqlServer(prodConnectionString));
+}
+
 builder.Services.AddIdentityApiEndpoints<CustomUser>()
     .AddEntityFrameworkStores<ApplicationContext>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IApplicationRepo, ApplicationRepo>();
 
 var app = builder.Build();
 
