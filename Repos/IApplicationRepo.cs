@@ -1,16 +1,17 @@
 ﻿using ApplicationTracker.Entities;
+using ApplicationTracker.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApplicationTracker.Repos
 {
     public interface IApplicationRepo
     {
-        ICollection<Application> GetApplicationsAsync(string userId);
-        ICollection<Application> GetByTitleAsync(string title);
-        Task<Application> GetByIdAsync(Guid id);
+        ICollection<Application> GetApplications(string userId);
+        ICollection<Application> GetByTitleAsync(string title, string userId);
+        Task<Application> GetByIdAsync(Guid id, string userId);
 
-        IActionResult AddApplication(Application application, string userId);
-        void UpdateApplication(Application application, string userId);
-        void DeleteApplication(Guid id);
+        Task AddApplication(ApplicationDto application, string userId);
+        Task UpdateApplication(Application application, string userId);
+        Task DeleteApplication(Guid id, string userId);
     }
 }

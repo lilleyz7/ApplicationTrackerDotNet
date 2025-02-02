@@ -7,10 +7,11 @@ namespace ApplicationTracker.Dtos
     {
 
         public required string Title { get; set; }
-        public required string Description { get; set; }
-        public string Status { get; set; } = string.Empty;
+        public required string Company { get; set; }
+        public required string Notes { get; set; }
+        public required string Status { get; set; }
 
-        public UrlAttribute? Link { get; set; }
+        public string? Link { get; set; } = string.Empty;
 
     }
 }

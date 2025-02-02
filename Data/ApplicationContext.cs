@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ApplicationTracker.Data
 {
-    public class ApplicationContext: DbContext
+    public class ApplicationContext: IdentityDbContext<CustomUser>
     {
-        public DbSet<CustomUser> Users { get; set; }
         public DbSet<Application> Applications { get; set; }
         public ApplicationContext(DbContextOptions<ApplicationContext> options): base(options)
         {
@@ -17,10 +17,9 @@ namespace ApplicationTracker.Data
 
             // Example: Apply configurations or constraints
             modelBuilder.Entity<CustomUser>()
-                .HasMany(c => c.Applications)
-                .WithOne(c => c.CustomUser)
-                .HasForeignKey(c => c.UserId)
-                .HasPrincipalKey(c => c.Id);
+            .HasMany(u => u.Applications)
+            .WithOne()
+            .HasForeignKey("UserId");
 
             modelBuilder.Entity<CustomUser>()
                 .HasIndex(u => u.Email)

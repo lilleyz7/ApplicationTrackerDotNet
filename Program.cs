@@ -9,13 +9,11 @@ using ApplicationTracker.Repos;
 using Microsoft.Extensions.Configuration;
 using System;
 
-var FrontEndPolicy = "frontendpolicy";
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>     
 {
-    options.AddPolicy(name: FrontEndPolicy,
+    options.AddPolicy(name: "DevelopmentPolicy",
                       policy =>
                       {
                           policy.WithOrigins("http://localhost:5173")
@@ -28,9 +26,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 
 // Add services to the container.
-var env = builder.Environment.EnvironmentName;
+var env = builder.Environment;
 
-if (env == "Development")
+if (env.IsDevelopment())
 {
     builder.Services.AddDbContext<ApplicationContext>(options =>
         options.UseSqlite($"Data Source=app.db"));
@@ -52,13 +50,12 @@ builder.Services.AddScoped<IApplicationRepo, ApplicationRepo>();
 
 var app = builder.Build();
 
-app.UseCors(FrontEndPolicy);
-
 app.MapIdentityApi<CustomUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors("DevelopmentPolicy");
     app.MapOpenApi();
     app.UseSwaggerUI(options =>
     {

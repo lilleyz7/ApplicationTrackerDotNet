@@ -1,4 +1,5 @@
 ﻿using ApplicationTracker.Data;
+using ApplicationTracker.Dtos;
 using ApplicationTracker.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,7 @@ namespace ApplicationTracker.Repos
         {
             return _db.SaveChangesAsync();
         }
-        public ICollection<Application> GetApplicationsAsync(string userId)
+        public ICollection<Application> GetApplications(string userId)
         {
             try
             {
@@ -25,7 +26,13 @@ namespace ApplicationTracker.Repos
                 {
                     throw new ArgumentNullException("userId");
                 }
-                var applications = _db.Applications.Where(a => a.UserId == userId).OrderBy(a => a.DateAdded).ToList();
+
+                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    throw new Exception("Failed to find user");
+                }
+                var applications = user.Applications.OrderBy(a => a.DateAdded).ToList();
                 if (applications == null)
                 {
                     return new List<Application>();
@@ -39,7 +46,7 @@ namespace ApplicationTracker.Repos
             }
         }
 
-        public ICollection<Application> GetByTitleAsync(string title)
+        public ICollection<Application> GetByTitleAsync(string title, string userId)
         {
             try
             {
@@ -48,7 +55,13 @@ namespace ApplicationTracker.Repos
                     throw new ArgumentNullException("title");
                 }
 
-                var applications = _db.Applications.Where(a => a.Title == title);
+                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+
+                var applications = user.Applications.Where(a => a.Title == title);
                 if (applications == null)
                 {
                     return new List<Application>();
@@ -60,11 +73,15 @@ namespace ApplicationTracker.Repos
                 throw new Exception($"failed to get application with error: {ex}");
             }
         }
-        public async Task<Application> GetByIdAsync(Guid id)
+        public async Task<Application> GetByIdAsync(Guid id, string userId)
         {
             try
             {
-                var application = await _db.Applications.FirstOrDefaultAsync(a => a.Id == id);
+                var user = await _db.Users.Include(u => u.Applications).FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null) {
+                    throw new Exception("User not found");
+                }
+                var application = user.Applications.Where(a => a.Id == id).FirstOrDefault();
                 if (application == null)
                 {
                     throw new Exception("Application does not exist");
@@ -76,22 +93,35 @@ namespace ApplicationTracker.Repos
                 throw new Exception($"failed to get application with error: {ex}");
             }
         }
-        public async Task AddApplication(Application application, string userId)
+        public async Task AddApplication(ApplicationDto application, string userId)
         {
             try
             {
+
+                if (application == null)
+                {
+                    throw new ArgumentNullException("Application");
+                }
+
                 if (string.IsNullOrEmpty(userId)) { throw new ArgumentNullException("userId"); }
+
                 var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
                 if (user == null)
                 {
                     throw new Exception("User does not exist");
                 }
 
-                application.UserId = userId;
-                application.CustomUser = user;
+                var applicationToAdd = new Application { 
+                    Title = application.Title,
+                    Company = application.Company,
+                    Notes = application.Notes,
+                    Status = application.Status,
+                    UserId = userId,
+                    CustomUser = user 
+                };
 
                 // Add to user's collection
-                user.Applications.Add(application);
+                user.Applications.Add(applicationToAdd);
 
                 await SaveChangesAsync();
             }
@@ -101,7 +131,7 @@ namespace ApplicationTracker.Repos
             }
         }
 
-        public async void DeleteApplication(Guid id, string userId)
+        public async Task DeleteApplication(Guid id, string userId)
         {
             try
             {
@@ -131,9 +161,35 @@ namespace ApplicationTracker.Repos
         }
 
 
-        public void UpdateApplication(Application updatedApplication, string userId)
+        public async Task UpdateApplication(Application updatedApplication, string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    throw new ArgumentNullException("userId");
+                }
+
+                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(a => a.Id == userId);
+                if (user == null)
+                {
+                    throw new Exception($"User does not exist");
+                }
+
+                var application = user.Applications.FirstOrDefault(a => a.Id == updatedApplication.Id);
+                if (application == null)
+                {
+                    throw new Exception("Application does not exist");
+                }
+                application = updatedApplication;
+
+                await SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to update with error: {ex}");
+            }
         }
     }
 }
