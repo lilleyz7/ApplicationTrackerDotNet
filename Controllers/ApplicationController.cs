@@ -74,7 +74,7 @@ namespace ApplicationTracker.Controllers
         }
 
         [Authorize]
-        [HttpDelete("/delete")]
+        [HttpDelete("/delete/{appId}")]
         public async Task<IActionResult> DeleteApplication(string appId)
         {
             if (string.IsNullOrEmpty(appId))
