@@ -11,9 +11,9 @@ namespace ApplicationTracker.Controllers
     [ApiController]
     public class ApplicationController : ControllerBase
     {
-        private readonly ApplicationRepo _repo;
+        private readonly IApplicationRepo _repo;
 
-        public ApplicationController(ApplicationRepo repo)
+        public ApplicationController(IApplicationRepo repo)
         {
             _repo = repo;
         }
@@ -34,7 +34,7 @@ namespace ApplicationTracker.Controllers
                 var applications = _repo.GetApplications(userId);
                 if (applications == null)
                 {
-                    return NotFound();
+                    return Ok();
                 }
 
                 return Ok(applications);
@@ -45,8 +45,9 @@ namespace ApplicationTracker.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("/addApp")]
-        public async Task<IActionResult> AddApplication(ApplicationDto appToAdd)
+        public async Task<IActionResult> AddApplication([FromBody] ApplicationDto appToAdd)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -67,8 +68,37 @@ namespace ApplicationTracker.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                Console.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
             }
+        }
+
+        [Authorize]
+        [HttpDelete("/delete")]
+        public async Task<IActionResult> DeleteApplication(string appId)
+        {
+            if (string.IsNullOrEmpty(appId))
+            {
+                return BadRequest("Invalid Application");
+            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                Guid guidId = Guid.Parse(appId);
+                await _repo.DeleteApplication(guidId, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
     }
 }

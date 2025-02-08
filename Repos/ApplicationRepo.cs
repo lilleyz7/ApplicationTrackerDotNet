@@ -27,12 +27,13 @@ namespace ApplicationTracker.Repos
                     throw new ArgumentNullException("userId");
                 }
 
-                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
-                if (user == null)
-                {
-                    throw new Exception("Failed to find user");
-                }
-                var applications = user.Applications.OrderBy(a => a.DateAdded).ToList();
+                var applications = _db.Applications.Where(a => a.UserId == userId).ToList();
+                //var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
+                //if (user == null)
+                //{
+                //    throw new Exception("Failed to find user");
+                //}
+                //var applications = user.Applications.OrderBy(a => a.DateAdded).ToList();
                 if (applications == null)
                 {
                     return new List<Application>();
@@ -116,12 +117,13 @@ namespace ApplicationTracker.Repos
                     Company = application.Company,
                     Notes = application.Notes,
                     Status = application.Status,
+                    Link = application.Link,
                     UserId = userId,
                     CustomUser = user 
                 };
 
                 // Add to user's collection
-                user.Applications.Add(applicationToAdd);
+                _db.Applications.Add(applicationToAdd);
 
                 await SaveChangesAsync();
             }
@@ -135,22 +137,19 @@ namespace ApplicationTracker.Repos
         {
             try
             {
-                if (string.IsNullOrEmpty(userId)) { throw new ArgumentNullException("userId"); }
-                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(u => u.Id == userId);
-
-                if (user == null)
+                var applicationToDelete = _db.Applications.FirstOrDefault(a => a.Id == id);
+                if (applicationToDelete == null)
                 {
-                    throw new Exception("User does not exist");
+                    throw new Exception("Application does not exist");
                 }
 
-                var application = user.Applications.FirstOrDefault(a => a.Id == id);
-                if (application == null)
+                _db.Applications.Remove(applicationToDelete);
+  
+                int changesMade = await SaveChangesAsync();
+                if (changesMade <= 0)
                 {
-                    return;
+                    throw new Exception("Failed to delete application");
                 }
-                user.Applications.Remove(application);
-
-                int success = await SaveChangesAsync();
 
 
             }
