@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "DevelopmentPolicy",
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:5173")
+                          policy.WithOrigins("http://localhost:5173/")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials(); ;
@@ -42,22 +42,23 @@ var env = builder.Environment;
 
 if (env.IsDevelopment())
 {
+    Console.WriteLine("Dev");
     builder.Services.AddDbContext<ApplicationContext>(options =>
         options.UseSqlite($"Data Source=app.db"));
 
     //builder.Services.AddStackExchangeRedisCache(options =>
     //{
     //    options.Configuration = builder.Configuration.GetConnectionString("dev_redis");
-    //    Console.WriteLine(builder.Configuration.GetConnectionString("dev_redis"));
     //    options.InstanceName = "DevApplications";
     //});
 
 }
 else
 {
+    Console.WriteLine("Prod");
     var prodConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<ApplicationContext>(options =>
-        options.UseSqlServer(prodConnectionString));
+        options.UseNpgsql(prodConnectionString));
 
     //builder.Services.AddStackExchangeRedisCache(options =>
     //{
@@ -82,6 +83,15 @@ app.UseRateLimiter();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
+{
+    app.UseCors("DevelopmentPolicy");
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    });
+}
+else
 {
     app.UseCors("DevelopmentPolicy");
     app.MapOpenApi();
