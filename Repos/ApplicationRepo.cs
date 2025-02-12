@@ -160,7 +160,7 @@ namespace ApplicationTracker.Repos
         }
 
 
-        public async Task UpdateApplication(Application updatedApplication, string userId)
+        public async Task UpdateApplication(ApplicationDto updatedApplication, string userId, Guid appId)
         {
             try
             {
@@ -169,20 +169,23 @@ namespace ApplicationTracker.Repos
                     throw new ArgumentNullException("userId");
                 }
 
-                var user = _db.Users.Include(u => u.Applications).FirstOrDefault(a => a.Id == userId);
-                if (user == null)
-                {
-                    throw new Exception($"User does not exist");
-                }
-
-                var application = user.Applications.FirstOrDefault(a => a.Id == updatedApplication.Id);
+                Application application = await _db.Applications.FirstAsync(a => a.Id == appId);
                 if (application == null)
                 {
-                    throw new Exception("Application does not exist");
+                    throw new ArgumentException("appId");
                 }
-                application = updatedApplication;
 
-                await SaveChangesAsync();
+                application.Company = updatedApplication.Company;
+                application.Status = updatedApplication.Status;
+                application.Notes = updatedApplication.Notes;
+                application.Title = updatedApplication.Title;
+                application.Link = updatedApplication.Link;
+
+                int changes = await SaveChangesAsync();
+                if (changes <= 0)
+                {
+                    throw new Exception("Failed to update");
+                }
 
             }
             catch (Exception ex)

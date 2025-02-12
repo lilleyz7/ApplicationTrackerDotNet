@@ -1,4 +1,6 @@
 ﻿using ApplicationTracker.Dtos;
+using ApplicationTracker.Entities;
+using ApplicationTracker.Redis;
 using ApplicationTracker.Repos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,15 +14,17 @@ namespace ApplicationTracker.Controllers
     public class ApplicationController : ControllerBase
     {
         private readonly IApplicationRepo _repo;
+        //private readonly IRedisService _cache;
 
-        public ApplicationController(IApplicationRepo repo)
+        public ApplicationController(IApplicationRepo repo /*IRedisService redisService*/ )
         {
             _repo = repo;
+            //_cache = redisService;
         }
 
         [Authorize]
         [HttpGet("/apps")]
-        public IActionResult GetApps()
+        public IActionResult GetAppsByUserId()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -28,6 +32,12 @@ namespace ApplicationTracker.Controllers
             {
                 return Unauthorized();
             }
+
+            //var cachedData = _cache.GetData<List<Application>>($"apps/{userId}");
+            //if (cachedData is not null)
+            //{
+            //    return Ok(cachedData);
+            //}
 
             try
             {
@@ -37,6 +47,7 @@ namespace ApplicationTracker.Controllers
                     return Ok();
                 }
 
+                //_cache.SetData<List<Application>>($"apps/{userId}", applications.ToList());
                 return Ok(applications);
             }
             catch (Exception ex)
@@ -99,6 +110,33 @@ namespace ApplicationTracker.Controllers
                 return BadRequest(ex.Message);
             }
             
+        }
+
+        [Authorize]
+        [HttpPut("/update/{appId}")]
+        public async Task<IActionResult> UpdateApplication([FromBody] ApplicationDto appToUpdate, string appId)
+        {
+            if (appToUpdate == null)
+            {
+                return BadRequest("Invalid Application");
+            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                Guid guidId = Guid.Parse(appId);
+                await _repo.UpdateApplication(appToUpdate, userId, guidId);
+                return Ok("Success");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed with error {ex.Message}");
+            }
         }
     }
 }

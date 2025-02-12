@@ -11,7 +11,7 @@ namespace ApplicationTracker.Repos
         Task<Application> GetByIdAsync(Guid id, string userId);
 
         Task AddApplication(ApplicationDto application, string userId);
-        Task UpdateApplication(Application application, string userId);
+        Task UpdateApplication(ApplicationDto application, string userId, Guid appId);
         Task DeleteApplication(Guid id, string userId);
     }
 }
