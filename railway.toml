@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "./ApplicationTracker/Dockerfile"
+
+[deploy]
+startCommand = "./ApplicationTracker"
+restartPolicyType = "always"
+healthCheckPath = "/health"

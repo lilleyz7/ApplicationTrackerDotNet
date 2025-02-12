@@ -28,6 +28,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddRateLimiter(_ => _
     .AddFixedWindowLimiter(policyName: "fixed", options =>
     {
@@ -77,6 +79,8 @@ builder.Services.AddScoped<IApplicationRepo, ApplicationRepo>();
 //builder.Services.AddScoped<IRedisService, RedisCacheService>();
 
 var app = builder.Build();
+
+app.UseHealthChecks("/health");
 
 app.MapIdentityApi<CustomUser>();
 app.UseRateLimiter();
