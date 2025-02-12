@@ -31,10 +31,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(_ => _
     .AddFixedWindowLimiter(policyName: "fixed", options =>
     {
-        options.PermitLimit = 4;
-        options.Window = TimeSpan.FromSeconds(12);
+        options.PermitLimit = 5;
+        options.Window = TimeSpan.FromSeconds(30);
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        options.QueueLimit = 2;
+        options.QueueLimit = 10;
     }));
 
 // Add services to the container.

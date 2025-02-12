@@ -5,10 +5,12 @@ using ApplicationTracker.Repos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApplicationTracker.Controllers
 {
+    [EnableRateLimiting("fixed")]
     [Route("api/[controller]")]
     [ApiController]
     public class ApplicationController : ControllerBase
