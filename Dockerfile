@@ -12,7 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ApplicationTracker/ApplicationTracker.csproj", "ApplicationTracker/"]
+COPY ApplicationTracker/ ApplicationTracker/
 RUN dotnet restore "./ApplicationTracker.csproj"
 COPY . /src
 WORKDIR /src/ApplicationTracker
