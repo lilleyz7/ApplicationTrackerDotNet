@@ -14,6 +14,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"https://*:{port}");
+
 builder.Services.AddCors(options =>     
 {
     options.AddPolicy(name: "DevelopmentPolicy",
