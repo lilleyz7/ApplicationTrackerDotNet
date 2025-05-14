@@ -61,7 +61,7 @@ if (env.IsDevelopment())
 else
 {
     Console.WriteLine("Prod");
-    var prodConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var prodConnectionString = Environment.GetEnvironmentVariable("PostgresConnectionString");
     builder.Services.AddDbContext<ApplicationContext>(options =>
         options.UseNpgsql(prodConnectionString));
 
