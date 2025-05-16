@@ -14,23 +14,11 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"https://*:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+//builder.WebHost.UseUrls($"https://*:{port}");
 
-builder.Services.AddCors(options =>     
-{
-    options.AddPolicy(name: "DevelopmentPolicy",
-                      policy =>
-                      {
-                          policy.WithOrigins("http://localhost:5173/")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials(); ;
-                      });
-});
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddHealthChecks();
 
 builder.Services.AddRateLimiter(_ => _
@@ -47,7 +35,17 @@ var env = builder.Environment;
 
 if (env.IsDevelopment())
 {
-    Console.WriteLine("Dev");
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: "DevelopmentPolicy",
+                          policy =>
+                          {
+                              policy.WithOrigins("http://localhost:5173/")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials(); ;
+                          });
+    });
     builder.Services.AddDbContext<ApplicationContext>(options =>
         options.UseSqlite($"Data Source=app.db"));
 
