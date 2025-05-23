@@ -1,6 +1,7 @@
 ﻿using ApplicationTracker.Data;
 using ApplicationTracker.Dtos;
 using ApplicationTracker.Entities;
+using ApplicationTracker.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApplicationTracker.Repos
@@ -112,15 +113,7 @@ namespace ApplicationTracker.Repos
                     throw new Exception("User does not exist");
                 }
 
-                var applicationToAdd = new Application { 
-                    Title = application.Title,
-                    Company = application.Company,
-                    Notes = application.Notes,
-                    Status = application.Status,
-                    Link = application.Link,
-                    UserId = userId,
-                    CustomUser = user 
-                };
+                var applicationToAdd = ApplicationMapper.Map(application, user);
 
                 // Add to user's collection
                 _db.Applications.Add(applicationToAdd);
@@ -158,8 +151,6 @@ namespace ApplicationTracker.Repos
                 throw new Exception($"Failed with error: {ex}");
             }
         }
-
-
         public async Task UpdateApplication(ApplicationDto updatedApplication, string userId, Guid appId)
         {
             try
